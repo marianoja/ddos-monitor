@@ -1,7 +1,8 @@
+
 <html><head><base href="https://ddos-monitor.net/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monitor de Ataques DDoS Global</title>
+<title>Monitor de Ataques DDoS Global en Tiempo Real con AbuseIPDB</title>
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://d3js.org/topojson.v3.min.js"></script>
 <style>
@@ -66,26 +67,52 @@
     padding-left: 20px;
     margin-bottom: 0;
   }
+  #data-source {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-size: 12px;
+    background-color: rgba(23, 42, 69, 0.8);
+    padding: 5px;
+    border-radius: 5px;
+  }
+  #error-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+    display: none;
+  }
 </style>
 </head>
 <body>
 <div id="map-container"></div>
 <div id="legend">
-  <h3>Monitor de Ataques DDoS</h3>
-  <p>Líneas rojas indican ataques en curso</p>
-  <p>Líneas más brillantes = Ataques más intensos</p>
+  <h3>Monitor de Ataques DDoS en Tiempo Real</h3>
+  <p>Líneas rojas indican reportes de IP abusivas</p>
+  <p>Líneas más brillantes = Reportes más recientes</p>
 </div>
-<div id="counter">Ataques totales: <span id="attack-count">0</span></div>
+<div id="counter">Reportes totales: <span id="attack-count">0</span></div>
 <div id="top-countries">
-  <h3>Top 10 Países Atacados</h3>
+  <h3>Top 10 Países con IPs Abusivas</h3>
   <ol id="top-list"></ol>
+</div>
+<div id="data-source">Fuente de datos: AbuseIPDB API</div>
+<div id="error-message">
+  <h2>Error de conexión</h2>
+  <p>No se pudieron obtener datos en tiempo real. Por favor, verifique su conexión a internet o inténtelo más tarde.</p>
 </div>
 
 <script>
 const width = window.innerWidth;
 const height = window.innerHeight;
-let attackCount = 0;
-let countryAttacks = {};
+let reportCount = 0;
+let countryReports = {};
 
 const svg = d3.select("#map-container")
   .append("svg")
@@ -100,49 +127,21 @@ const path = d3.geoPath().projection(projection);
 
 // Load world map data
 d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then(function(world) {
-  const countries = topojson.feature(world, world.objects.countries);
+  const worldCountries = topojson.feature(world, world.objects.countries);
 
   svg.selectAll("path")
-    .data(countries.features)
+    .data(worldCountries.features)
     .enter().append("path")
     .attr("class", "country")
     .attr("d", path);
 
-  // Simulate DDoS attacks
-  function simulateAttack() {
-    const source = randomCountry();
-    const target = randomCountry();
-
-    const sourceCoords = projection([source.longitude, source.latitude]);
-    const targetCoords = projection([target.longitude, target.latitude]);
-
-    const lineGenerator = d3.line()
-      .curve(d3.curveBasis);
-
-    const midPoint = [(sourceCoords[0] + targetCoords[0]) / 2, (sourceCoords[1] + targetCoords[1]) / 2];
-    const controlPoint = [
-      midPoint[0] + (Math.random() - 0.5) * 100,
-      midPoint[1] + (Math.random() - 0.5) * 100
-    ];
-
-    const points = [sourceCoords, controlPoint, targetCoords];
-
-    svg.append("path")
-      .attr("class", "attack-line")
-      .attr("d", lineGenerator(points))
-      .style("stroke-dasharray", "5,5")
-      .style("stroke-dashoffset", 10)
-      .transition()
-      .duration(2000)
-      .style("stroke-dashoffset", 0)
-      .on("end", function() {
-        d3.select(this).remove();
-      });
+  function displayReport(report) {
+    const coords = projection([report.longitude, report.latitude]);
 
     svg.append("circle")
       .attr("class", "attack-point")
-      .attr("cx", targetCoords[0])
-      .attr("cy", targetCoords[1])
+      .attr("cx", coords[0])
+      .attr("cy", coords[1])
       .attr("r", 0)
       .transition()
       .duration(1000)
@@ -152,49 +151,52 @@ d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then(f
       .attr("r", 0)
       .remove();
 
-    attackCount++;
-    d3.select("#attack-count").text(attackCount);
+    reportCount++;
+    d3.select("#attack-count").text(reportCount);
 
-    // Update country attack count
-    countryAttacks[target.name] = (countryAttacks[target.name] || 0) + 1;
+    // Update country report count
+    countryReports[report.countryCode] = (countryReports[report.countryCode] || 0) + 1;
     updateTopCountries();
   }
 
-  setInterval(simulateAttack, 1000);
+  function updateTopCountries() {
+    const topCountries = Object.entries(countryReports)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
+
+    const topList = d3.select("#top-list");
+    
+    topList.selectAll("li")
+      .data(topCountries)
+      .join("li")
+      .text(d => `${d[0]}: ${d[1]} reportes`);
+  }
+
+  function fetchReports() {
+    const apiKey = 'YOUR_ABUSEIPDB_API_KEY'; // Replace with your actual AbuseIPDB API key
+    const url = 'https://api.abuseipdb.com/api/v2/blacklist';
+    
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Key': apiKey
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      data.data.forEach(report => {
+        displayReport(report);
+      });
+      setTimeout(fetchReports, 60000); // Fetch new data every minute to respect API rate limits
+    })
+    .catch(error => {
+      console.error('Error fetching report data:', error);
+      document.getElementById('error-message').style.display = 'block';
+    });
+  }
+
+  fetchReports();
 });
-
-function randomCountry() {
-  const countries = [
-    {name: "Estados Unidos", latitude: 37.0902, longitude: -95.7129},
-    {name: "China", latitude: 35.8617, longitude: 104.1954},
-    {name: "Rusia", latitude: 61.5240, longitude: 105.3188},
-    {name: "Brasil", latitude: -14.2350, longitude: -51.9253},
-    {name: "India", latitude: 20.5937, longitude: 78.9629},
-    {name: "Alemania", latitude: 51.1657, longitude: 10.4515},
-    {name: "Japón", latitude: 36.2048, longitude: 138.2529},
-    {name: "Reino Unido", latitude: 55.3781, longitude: -3.4360},
-    {name: "Francia", latitude: 46.2276, longitude: 2.2137},
-    {name: "Australia", latitude: -25.2744, longitude: 133.7751},
-    {name: "Canadá", latitude: 56.1304, longitude: -106.3468},
-    {name: "España", latitude: 40.4637, longitude: -3.7492},
-    {name: "Italia", latitude: 41.8719, longitude: 12.5674},
-    {name: "Países Bajos", latitude: 52.1326, longitude: 5.2913},
-    {name: "Corea del Sur", latitude: 35.9078, longitude: 127.7669}
-  ];
-  return countries[Math.floor(Math.random() * countries.length)];
-}
-
-function updateTopCountries() {
-  const topCountries = Object.entries(countryAttacks)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
-
-  const topList = d3.select("#top-list");
-  
-  topList.selectAll("li")
-    .data(topCountries)
-    .join("li")
-    .text(d => `${d[0]}: ${d[1]} ataques`);
-}
 </script>
 </body></html>
