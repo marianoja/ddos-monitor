@@ -1,28 +1,54 @@
-# Global DDoS Attack Monitor
+# Monitor de Ataques DDoS Global en Tiempo Real con AbuseIPDB
 
-This project is an interactive web application that monitors and visualizes Distributed Denial of Service (DDoS) attacks globally. It leverages technologies such as D3.js and TopoJSON to represent the attack routes on a world map in real-time, highlighting the source and target locations.
+Este proyecto proporciona una visualización en tiempo real de los ataques DDoS utilizando datos de IPs abusivas obtenidos a través de la API gratuita de AbuseIPDB. La aplicación muestra un mapa mundial con los reportes de IPs abusivas y actualiza la visualización cada minuto.
 
-## Features
+## Requisitos
 
-- **World Map Visualization**: Displays an interactive map with the routes of DDoS attacks.
-- **Real-Time Attack Simulation**: Simulates DDoS attacks between random countries with visual indicators on the map.
-- **Attack Counter**: Keeps a running tally of the total number of attacks.
-- **Top 10 Attacked Countries**: Shows a list of the top 10 most attacked countries.
+- **Navegador Web**: La aplicación se ejecuta en cualquier navegador moderno que soporte HTML5 y JavaScript.
+- **API Key de AbuseIPDB**: Necesitarás una clave API para acceder a los datos en tiempo real de AbuseIPDB.
 
-## Technologies Used
+## Configuración
 
-- **D3.js**: For creating dynamic and interactive data visualizations.
-- **TopoJSON**: For handling the world map data.
-- **HTML/CSS/JavaScript**: The core structure and styling of the application.
+1. **Clona el repositorio o descarga el archivo HTML**:
+   - Si estás descargando desde un repositorio, usa `git clone <URL_DEL_REPOSITORIO>`.
+   - Si estás descargando el archivo HTML, guárdalo en tu sistema local.
 
-## How to Run
+2. **Obtén una clave API de AbuseIPDB**:
+   - Regístrate en [AbuseIPDB](https://www.abuseipdb.com/) para obtener una clave API gratuita.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/ddos-attack-monitor.git
+3. **Reemplaza la clave API en el código**:
+   - Abre el archivo HTML en un editor de texto.
+   - Busca la línea que dice `const apiKey = 'YOUR_ABUSEIPDB_API_KEY';` y reemplázala con tu clave API de AbuseIPDB.
 
-2. Navigate to the project directory:
-   ```bash
-   cd ddos-attack-monitor
-3. Open the index.html file in your preferred web browser.
-   
+## Cómo Ejecutar
+
+1. **Abre el archivo HTML**:
+   - Abre el archivo HTML en tu navegador web. Esto debería mostrar el mapa global y comenzar a recibir datos de AbuseIPDB.
+
+2. **Visualiza los ataques**:
+   - El mapa mostrará las IPs abusivas en tiempo real como puntos rojos y líneas que indican ataques.
+   - La sección de "Top 10 Países con IPs Abusivas" se actualizará con los países que más reportes tienen.
+
+3. **Manejo de errores**:
+   - Si hay problemas para conectar con la API de AbuseIPDB, se mostrará un mensaje de error en la pantalla. Asegúrate de que tu conexión a Internet esté funcionando y que la clave API sea correcta.
+
+## Personalización
+
+- **Intervalo de Actualización**:
+  - Puedes ajustar el intervalo de actualización de los datos cambiando el valor en `setTimeout(fetchReports, 60000);` (el valor está en milisegundos).
+
+- **Estilos**:
+  - Modifica el CSS en el bloque `<style>` para cambiar la apariencia del mapa y los elementos de la interfaz.
+
+## Contribuciones
+
+Si deseas contribuir a este proyecto, puedes hacer un fork del repositorio, realizar tus cambios y enviar un pull request. También puedes reportar errores o sugerencias abriendo un problema en el repositorio.
+
+## Licencia
+
+Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
+
+## Contacto
+
+Para preguntas o soporte, por favor contacta a [tu_email@example.com](mailto:tu_email@example.com).
+
