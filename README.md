@@ -44,11 +44,3 @@ Este proyecto proporciona una visualización en tiempo real de los ataques DDoS 
 
 Si deseas contribuir a este proyecto, puedes hacer un fork del repositorio, realizar tus cambios y enviar un pull request. También puedes reportar errores o sugerencias abriendo un problema en el repositorio.
 
-## Licencia
-
-Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
-
-## Contacto
-
-Para preguntas o soporte, por favor contacta a [tu_email@example.com](mailto:tu_email@example.com).
-
